@@ -475,10 +475,19 @@ int main()
         bool up_arrow = false;
         float time = 0.5f;
 
+
         // if tetromino spawned in landed blocks game is over
-        if (landed_get_value(landed, tetrominoes[i].topLeft.x, tetrominoes[i].topLeft.y) != 0)
+        for (int32_t y = 0; y < tetrominoes[i].shapes[tetrominoes[i].currentShape].height; ++y)
         {
-            break;
+            for (int32_t x = 0; x < tetrominoes[i].shapes[tetrominoes[i].currentShape].width; ++x)
+            {
+                if (landed_get_value(landed,
+                            x + tetrominoes[i].topLeft.x,
+                            y + tetrominoes[i].topLeft.y) != 0)
+                {
+                    goto exit;
+                }
+            }
         }
 
         for (;;)
@@ -595,6 +604,7 @@ int main()
         }
     }
 
+exit:
     // Copy last frame to console buffer
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
     memset(screen, ' ', console_array_size);
@@ -602,7 +612,6 @@ int main()
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
     Sleep(2000);
 
-exit:
 #ifndef NDEBUG
     stb_leakcheck_dumpmem();
 #endif // !NDEBUG
