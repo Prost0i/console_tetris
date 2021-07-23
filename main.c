@@ -498,6 +498,24 @@ void draw_field_frame(char *screen, int32_t width)
     }
 }
 
+int32_t game_over_check(struct Tetromino *tetromino, int32_t *landed)
+{
+    // if tetromino spawned in landed blocks game is over
+    for (int32_t y = 0; y < tetromino->shapes[tetromino->currentShape].height; ++y)
+    {
+        for (int32_t x = 0; x < tetromino->shapes[tetromino->currentShape].width; ++x)
+        {
+            if (landed_get_value(landed,
+                        x + tetromino->topLeft.x,
+                        y + tetromino->topLeft.y) != 0)
+            {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 int main()
 {
     LARGE_INTEGER cpu_freq;
@@ -542,18 +560,9 @@ int main()
         int32_t i = rand() % 7;
         float time = 0.5f;
 
-        // if tetromino spawned in landed blocks game is over
-        for (int32_t y = 0; y < tetrominoes[i].shapes[tetrominoes[i].currentShape].height; ++y)
+        if (game_over_check(&tetrominoes[i], landed))
         {
-            for (int32_t x = 0; x < tetrominoes[i].shapes[tetrominoes[i].currentShape].width; ++x)
-            {
-                if (landed_get_value(landed,
-                            x + tetrominoes[i].topLeft.x,
-                            y + tetrominoes[i].topLeft.y) != 0)
-                {
-                    goto exit;
-                }
-            }
+            goto exit;
         }
 
         for (;;)
