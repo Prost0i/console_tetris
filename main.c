@@ -155,6 +155,47 @@ void reset_tetromino_state(struct Tetromino *tetromino)
     tetromino->potentialTopLeft = tetromino->topLeft;
 }
 
+int32_t check_boundary(struct Tetromino *tetromino, int32_t *landed, int32_t x, int32_t y)
+{
+    // check for left boundary
+    if (x + tetromino->potentialTopLeft.x < 0)
+    {
+        return 1;
+    }
+    // check for right boundary
+    if (x + tetromino->potentialTopLeft.x >= LAND_WIDTH)
+    {
+        return 1;
+    }
+    // check left and right landed blocks
+    if (landed_get_value(landed,
+                x + tetromino->potentialTopLeft.x,
+                y + tetromino->topLeft.y) != 0)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+// returning 0 if tetromino is not landed
+// returning 1 if tetromino is landed
+int32_t check_landing(struct Tetromino *tetromino, int32_t *landed, int32_t x, int32_t y)
+{
+    // landing on floor
+    if (y + tetromino->potentialTopLeft.y >= LAND_HEIGHT)
+    {
+        return 1;
+    }
+    // landing on landed blocks
+    if (landed_get_value(landed,
+                x + tetromino->potentialTopLeft.x,
+                y + tetromino->potentialTopLeft.y) != 0)
+    {
+        return 1;
+    }
+    return 0;
+}
+
 // returning 0 if tetromino is not landed
 // returning 1 if tetromino is landed
 int32_t check_colision(struct Tetromino *tetromino, int32_t *landed)
@@ -165,38 +206,11 @@ int32_t check_colision(struct Tetromino *tetromino, int32_t *landed)
         {
             if (tetromino_get_value(&tetromino->shapes[tetromino->currentShape], x, y) != 0)
             {
-                // check for left boundary
-                if (x + tetromino->potentialTopLeft.x < 0)
+                if (check_boundary(tetromino, landed, x, y))
                 {
                     tetromino->potentialTopLeft.x = tetromino->topLeft.x;
                 }
-
-                // check for right boundary
-                if (x + tetromino->potentialTopLeft.x >= LAND_WIDTH)
-                {
-                    tetromino->potentialTopLeft.x = tetromino->topLeft.x;
-                }
-
-                // check left and right landed blocks
-                if (landed_get_value(landed,
-                            x + tetromino->potentialTopLeft.x,
-                            y + tetromino->topLeft.y) != 0)
-                {
-                    tetromino->potentialTopLeft.x = tetromino->topLeft.x;
-                }
-
-                // landing on floor
-                if (y + tetromino->potentialTopLeft.y >= LAND_HEIGHT)
-                {
-                    land_tetromino(tetromino, landed);
-                    reset_tetromino_state(tetromino);
-                    return 1;
-                }
-
-                // landing on landed blocks
-                if (landed_get_value(landed,
-                            x + tetromino->potentialTopLeft.x,
-                            y + tetromino->potentialTopLeft.y) != 0)
+                if (check_landing(tetromino, landed, x, y))
                 {
                     land_tetromino(tetromino, landed);
                     reset_tetromino_state(tetromino);
@@ -228,36 +242,12 @@ void rotate_tetromino(struct Tetromino *tetromino, int32_t *landed)
         {
             if (tetromino_get_value(shape, x, y) != 0)
             {
-                // check for left boundary
-                if (x + tetromino->topLeft.x < 0)
+                if (check_boundary(tetromino, landed, x, y))
                 {
                     return;
                 }
 
-                // check for right boundary
-                if (x + tetromino->topLeft.x >= LAND_WIDTH)
-                {
-                    return;
-                }
-
-                // check left and right landed blocks
-                if (landed_get_value(landed,
-                            x + tetromino->potentialTopLeft.x,
-                            y + tetromino->topLeft.y) != 0)
-                {
-                    return;
-                }
-
-                // check for floor
-                if (y + tetromino->topLeft.y >= LAND_HEIGHT)
-                {
-                    return;
-                }
-
-                // check for landed blocks
-                if (landed_get_value(landed,
-                            x + tetromino->potentialTopLeft.x,
-                            y + tetromino->potentialTopLeft.y) != 0)
+                if (check_landing(tetromino, landed, x, y))
                 {
                     return;
                 }
