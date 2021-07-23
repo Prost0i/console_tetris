@@ -258,6 +258,44 @@ void rotate_tetromino(struct Tetromino *tetromino, int32_t *landed)
     tetromino->currentShape = next_shape_index;
 }
 
+int32_t check_filled_row(int32_t *landed)
+{
+    int32_t score = 0;
+    for (int32_t y = 0; y < 16; ++y)
+    {
+        bool is_filled = true;
+        for (int32_t x = 0; x < 10; ++x)
+        {
+            if (landed_get_value(landed, x, y) == 0)
+            {
+                is_filled = false;
+            }
+        }
+        if (is_filled)
+        {
+            score += 100;
+            for (int32_t x = 0; x < 10; ++x)
+            {
+                landed_set_value(landed, 0, x, y);
+            }
+
+            for (int32_t yy = y-1; yy > 0; --yy)
+            {
+                for (int32_t x = 0; x < 10; ++x)
+                {
+                    int32_t value = landed_get_value(landed, x, yy);
+                    landed_set_value(landed, value, x, yy+1);
+                }
+            }
+            for (int x = 0; x < 10; ++x)
+            {
+                landed_set_value(landed, 0, x, 0);
+            }
+        }
+    }
+    return score;
+}
+
 inline float time_diff(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER cpu_freq)
 {
     float result = ((float)(end.QuadPart - start.QuadPart) / (float)cpu_freq.QuadPart);
@@ -582,39 +620,7 @@ int main()
 
             if (check_colision(&tetrominoes[i], landed))
             {
-                for (int32_t y = 0; y < 16; ++y)
-                {
-                    bool is_filled = true;
-                    for (int32_t x = 0; x < 10; ++x)
-                    {
-                        if (landed_get_value(landed, x, y) == 0)
-                        {
-                            is_filled = false;
-                        }
-                    }
-                    if (is_filled)
-                    {
-                        score += 100;
-                        for (int32_t x = 0; x < 10; ++x)
-                        {
-                            landed_set_value(landed, 0, x, y);
-                        }
-
-                        for (int32_t yy = y-1; yy > 0; --yy)
-                        {
-                            for (int32_t x = 0; x < 10; ++x)
-                            {
-                                int32_t value = landed_get_value(landed, x, yy);
-                                landed_set_value(landed, value, x, yy+1);
-                            }
-                        }
-                        for (int x = 0; x < 10; ++x)
-                        {
-                            landed_set_value(landed, 0, x, 0);
-                        }
-                    }
-                }
-
+                score += check_filled_row(landed);
                 break;
             }
             else
