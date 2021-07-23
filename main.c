@@ -59,7 +59,7 @@ struct Tetromino
     int32_t countOfShapes;
     vec2i topLeft;
     vec2i potentialTopLeft;
-} Tetromino;
+};
 
 // Offsets for 2D arrays
 inline void screen_set_value(char *screen, char value, int32_t x, int32_t y, int32_t width)
