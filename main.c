@@ -15,8 +15,8 @@
 #define LAND_HEIGHT 16
 #define LAND_SIZE LAND_WIDTH*LAND_HEIGHT
 #define TETROMINO_SHAPE_SIZE 16
-#define SCREEN_X_OFFSET 0
-#define SCREEN_Y_OFFSET 0
+#define SCREEN_X_OFFSET 1
+#define SCREEN_Y_OFFSET 1
 
 struct ConsoleSize
 {
@@ -429,6 +429,28 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
     create_tetromino(&tetrominoes[6], ZVal, Zsizes, 2);
 }
 
+void draw_field_frame(char *screen, int32_t width)
+{
+    // drawing left and right boundary
+    for (int i = 1; i < 17; ++i)
+    {
+        screen_set_value(screen, '|', 0, i, width);
+        screen_set_value(screen, '|', 11, i, width);
+    }
+
+    // drawing angles
+    screen_set_value(screen, '+', 0, 0, width);
+    screen_set_value(screen, '+', 11, 0, width);
+    screen_set_value(screen, '+', 0, 17, width);
+    screen_set_value(screen, '+', 11, 17, width);
+
+    // drawing ceiling and floor
+    for (int i = 1; i < 11; ++i)
+    {
+        screen_set_value(screen, '-', i, 0, width);
+        screen_set_value(screen, '-', i, 17, width);
+    }
+}
 
 int main()
 {
@@ -449,6 +471,7 @@ int main()
     };
     // Clear screen with space characters
     memset(screen, ' ', console_array_size);
+    draw_field_frame(screen, console_size.width);
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
 
     // landed blocks with field 10x16 (10 columns and 16 rows)
