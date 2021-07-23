@@ -61,6 +61,14 @@ struct Tetromino
     vec2i potentialTopLeft;
 };
 
+struct Keys {
+    bool left;
+    bool right;
+    bool up;
+    bool down;
+    bool escape;
+};
+
 // Offsets for 2D arrays
 inline void screen_set_value(char *screen, char value, int32_t x, int32_t y, int32_t width)
 {
@@ -530,12 +538,9 @@ int main()
 
     for (;;)
     {
+        struct Keys keys;
         int32_t i = rand() % 7;
-        bool left_arrow = false;
-        bool right_arrow = false;
-        bool up_arrow = false;
         float time = 0.5f;
-
 
         // if tetromino spawned in landed blocks game is over
         for (int32_t y = 0; y < tetrominoes[i].shapes[tetrominoes[i].currentShape].height; ++y)
@@ -554,35 +559,24 @@ int main()
         for (;;)
         {
             // input
-            if (GetAsyncKeyState(VK_ESCAPE))
+            keys.left = GetAsyncKeyState(VK_LEFT);
+            keys.right = GetAsyncKeyState(VK_RIGHT);
+            keys.up = GetAsyncKeyState(VK_UP);
+            keys.down = GetAsyncKeyState(VK_DOWN);
+            keys.escape = GetAsyncKeyState(VK_ESCAPE);
+
+            if (keys.escape)
             {
                 goto exit;
             }
-            else if (GetAsyncKeyState(VK_LEFT))
-            {
-                left_arrow = true;
-            }
-            else if (GetAsyncKeyState(VK_RIGHT))
-            {
-                right_arrow = true;
-            }
 
-            if (GetAsyncKeyState(VK_DOWN))
+            if (keys.down)
             {
                 time = 0.1f;
             }
             else
             {
                 time = 0.5f;
-            }
-
-            if (GetAsyncKeyState(VK_UP))
-            {
-                up_arrow = true;
-            }
-            else
-            {
-                up_arrow = false;
             }
 
             place_landed_blocks_to_screen(landed, screen, &console_size);
@@ -595,27 +589,24 @@ int main()
             }
 
             QueryPerformanceCounter(&x_cooldown2);
-            if (left_arrow && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
+            if (keys.left && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
             {
                 QueryPerformanceCounter(&x_cooldown1);
                 --tetrominoes[i].potentialTopLeft.x;
             }
-            else if (right_arrow && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
+            else if (keys.right && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
             {
                 QueryPerformanceCounter(&x_cooldown1);
                 ++tetrominoes[i].potentialTopLeft.x;
             }
             
             QueryPerformanceCounter(&r_cooldown2);
-            if (up_arrow && time_diff(r_cooldown1, r_cooldown2, cpu_freq) > 0.2f)
+            if (keys.up && time_diff(r_cooldown1, r_cooldown2, cpu_freq) > 0.2f)
             {
                 QueryPerformanceCounter(&r_cooldown1);
                 rotate_tetromino(&tetrominoes[i], landed);
             }
-            // reset arrow state
-            left_arrow = false;
-            right_arrow = false;
-            up_arrow = false;
+
             place_tetromino_to_screen(&tetrominoes[i], screen, &console_size);
 
             if (check_colision(&tetrominoes[i], landed))
