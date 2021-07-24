@@ -117,6 +117,23 @@ void place_tetromino_to_screen(struct Tetromino *tetromino, char *screen, struct
     }
 }
 
+void draw_tetromino(struct Tetromino *tetromino, vec2i coord, char *screen, struct ConsoleSize *console_size)
+{
+    for (int32_t y = 0; y < tetromino->shapes[0].height; ++y)
+    {
+        for (int32_t x = 0; x < tetromino->shapes[0].width; ++x)
+        {
+            if (tetromino_get_value(&tetromino->shapes[tetromino->currentShape], x, y) != 0)
+            {
+                const int32_t screen_x = x+coord.x;
+                const int32_t screen_y = y+coord.y;
+                const int32_t screen_w = console_size->width;
+                screen_set_value(screen, 'T', screen_x, screen_y, screen_w);
+            }
+        }
+    }
+}
+
 void place_landed_blocks_to_screen(int32_t *landed, char *screen, struct ConsoleSize *console_size)
 {
     for (int32_t y = 0; y < 16; ++y)
@@ -475,27 +492,42 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
     create_tetromino(&tetrominoes[6], ZVal, Zsizes, 2);
 }
 
-void draw_field_frame(char *screen, int32_t width)
+void draw_frames(char *screen, int32_t width)
 {
+    // main play field frame:
     // drawing left and right boundary
     for (int i = 1; i < 17; ++i)
     {
         screen_set_value(screen, '|', 0, i, width);
         screen_set_value(screen, '|', 11, i, width);
     }
-
     // drawing angles
     screen_set_value(screen, '+', 0, 0, width);
     screen_set_value(screen, '+', 11, 0, width);
     screen_set_value(screen, '+', 0, 17, width);
     screen_set_value(screen, '+', 11, 17, width);
-
     // drawing ceiling and floor
     for (int i = 1; i < 11; ++i)
     {
         screen_set_value(screen, '-', i, 0, width);
         screen_set_value(screen, '-', i, 17, width);
     }
+
+    // next tetromino preview frame:
+    // drawing right boundary
+    for (int i = 1; i < 5; ++i)
+    {
+        screen_set_value(screen, '|', 16, i, width);
+    }
+    // drawing ceiling and floor
+    for (int i = 12; i < 16; ++i)
+    {
+        screen_set_value(screen, '-', i, 0, width);
+        screen_set_value(screen, '-', i, 5, width);
+    }
+    // drawing angles
+    screen_set_value(screen, '+', 16, 0, width);
+    screen_set_value(screen, '+', 16, 5, width);
 }
 
 int32_t game_over_check(struct Tetromino *tetromino, int32_t *landed)
@@ -514,6 +546,22 @@ int32_t game_over_check(struct Tetromino *tetromino, int32_t *landed)
         }
     }
     return 0;
+}
+
+void draw_next_tetromino_preview(struct Tetromino *tetromino, char *screen, struct ConsoleSize *console_size)
+{
+    // clearing preview window from previous tetromino
+    for (int y = 1; y < 5; ++y)
+    {
+        for (int x = 12; x < 16; ++x)
+        {
+            screen_set_value(screen, ' ', x, y, console_size->width);
+        }
+    }
+
+    // placing tetromino in preview window
+    vec2i next_tetromino_coord = { .x = 12, .y = 1 };
+    draw_tetromino(tetromino, next_tetromino_coord, screen, console_size);
 }
 
 int main()
@@ -535,7 +583,7 @@ int main()
     };
     // Clear screen with space characters
     memset(screen, ' ', console_array_size);
-    draw_field_frame(screen, console_size.width);
+    draw_frames(screen, console_size.width);
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
 
     // landed blocks with field 10x16 (10 columns and 16 rows)
@@ -553,17 +601,24 @@ int main()
     QueryPerformanceCounter(&y_cooldown1);
     QueryPerformanceCounter(&r_cooldown1);
     int32_t score = 0;
+    // choose current tetromino
+    int32_t next_tetromino = rand() % 7;
 
     for (;;)
     {
         struct Keys keys;
-        int32_t i = rand() % 7;
+        // setting current tetromino by next_tetromino value from previous loop iteration
+        int32_t current_tetromino = next_tetromino;
+        // randomly choose the next value for next loop iteration
+        next_tetromino = rand() % 7;
         float time = 0.5f;
 
-        if (game_over_check(&tetrominoes[i], landed))
+        if (game_over_check(&tetrominoes[current_tetromino], landed))
         {
             goto exit;
         }
+
+        draw_next_tetromino_preview(&tetrominoes[next_tetromino], screen, &console_size);
 
         for (;;)
         {
@@ -594,38 +649,38 @@ int main()
             if (time_diff(y_cooldown1, y_cooldown2, cpu_freq) > time)
             {
                 QueryPerformanceCounter(&y_cooldown1);
-                ++tetrominoes[i].potentialTopLeft.y;
+                ++tetrominoes[current_tetromino].potentialTopLeft.y;
             }
 
             QueryPerformanceCounter(&x_cooldown2);
             if (keys.left && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
             {
                 QueryPerformanceCounter(&x_cooldown1);
-                --tetrominoes[i].potentialTopLeft.x;
+                --tetrominoes[current_tetromino].potentialTopLeft.x;
             }
             else if (keys.right && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
             {
                 QueryPerformanceCounter(&x_cooldown1);
-                ++tetrominoes[i].potentialTopLeft.x;
+                ++tetrominoes[current_tetromino].potentialTopLeft.x;
             }
             
             QueryPerformanceCounter(&r_cooldown2);
             if (keys.up && time_diff(r_cooldown1, r_cooldown2, cpu_freq) > 0.2f)
             {
                 QueryPerformanceCounter(&r_cooldown1);
-                rotate_tetromino(&tetrominoes[i], landed);
+                rotate_tetromino(&tetrominoes[current_tetromino], landed);
             }
 
-            place_tetromino_to_screen(&tetrominoes[i], screen, &console_size);
+            place_tetromino_to_screen(&tetrominoes[current_tetromino], screen, &console_size);
 
-            if (check_colision(&tetrominoes[i], landed))
+            if (check_colision(&tetrominoes[current_tetromino], landed))
             {
                 score += check_filled_row(landed);
                 break;
             }
             else
             {
-                tetrominoes[i].topLeft = tetrominoes[i].potentialTopLeft;
+                tetrominoes[current_tetromino].topLeft = tetrominoes[current_tetromino].potentialTopLeft;
             }
 
             // Copy screen buffer to console buffer
