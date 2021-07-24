@@ -283,9 +283,8 @@ void rotate_tetromino(struct Tetromino *tetromino, int32_t *landed)
     tetromino->currentShape = next_shape_index;
 }
 
-int32_t check_filled_row(int32_t *landed)
+void check_filled_row(int32_t *landed, int32_t *score, float *falling_cooldown)
 {
-    int32_t score = 0;
     for (int32_t y = 0; y < 16; ++y)
     {
         bool is_filled = true;
@@ -298,7 +297,10 @@ int32_t check_filled_row(int32_t *landed)
         }
         if (is_filled)
         {
-            score += 100;
+            // increasing game score
+            *score += 100;
+            // increasing falling speed
+            *falling_cooldown *= 0.95f;
             for (int32_t x = 0; x < 10; ++x)
             {
                 landed_set_value(landed, 0, x, y);
@@ -318,7 +320,6 @@ int32_t check_filled_row(int32_t *landed)
             }
         }
     }
-    return score;
 }
 
 inline float time_diff(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER cpu_freq)
@@ -603,6 +604,7 @@ int main()
     int32_t score = 0;
     // choose current tetromino
     int32_t next_tetromino = rand() % 7;
+    float falling_cooldown = 0.5f;
 
     for (;;)
     {
@@ -611,7 +613,6 @@ int main()
         int32_t current_tetromino = next_tetromino;
         // randomly choose the next value for next loop iteration
         next_tetromino = rand() % 7;
-        float time = 0.5f;
 
         if (game_over_check(&tetrominoes[current_tetromino], landed))
         {
@@ -634,19 +635,17 @@ int main()
                 goto exit;
             }
 
-            if (keys.down)
-            {
-                time = 0.1f;
-            }
-            else
-            {
-                time = 0.5f;
-            }
-
             place_landed_blocks_to_screen(landed, screen, &console_size);
 
             QueryPerformanceCounter(&y_cooldown2);
-            if (time_diff(y_cooldown1, y_cooldown2, cpu_freq) > time)
+            // increased falling
+            if (keys.down && time_diff(y_cooldown1, y_cooldown2, cpu_freq) > (falling_cooldown / 5.0f))
+            {
+                QueryPerformanceCounter(&y_cooldown1);
+                ++tetrominoes[current_tetromino].potentialTopLeft.y;
+            }
+            // normal falling
+            else if (time_diff(y_cooldown1, y_cooldown2, cpu_freq) > falling_cooldown)
             {
                 QueryPerformanceCounter(&y_cooldown1);
                 ++tetrominoes[current_tetromino].potentialTopLeft.y;
@@ -675,7 +674,8 @@ int main()
 
             if (check_colision(&tetrominoes[current_tetromino], landed))
             {
-                score += check_filled_row(landed);
+                // if row filled increasing score and falling down speed 
+                check_filled_row(landed, &score, &falling_cooldown);
                 break;
             }
             else
