@@ -693,6 +693,7 @@ exit:
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
     memset(screen, ' ', console_array_size);
     sprintf(screen, "Score: %d", score);
+    screen[strlen(screen)] = ' ';
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
     Sleep(2000);
 
