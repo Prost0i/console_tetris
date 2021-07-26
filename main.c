@@ -8,12 +8,8 @@
 #include "landed.c"
 #include "checks.c"
 
-#ifndef NDEBUG
-#define STB_LEAKCHECK_IMPLEMENTATION
-#include <stb_leakcheck.h>
-#endif // !NDEBUG
-
 #include <Windows.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
@@ -165,9 +161,6 @@ exit:
     WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
     Sleep(2000);
 
-#ifndef NDEBUG
-    stb_leakcheck_dumpmem();
-#endif // !NDEBUG
     printf("Score: %d\n", score);
     return 0;
 }
