@@ -60,7 +60,7 @@ void rotate_tetromino(struct Tetromino *tetromino, int32_t *landed)
 
 void create_tetromino(struct Tetromino *tetromino, const char **values, const vec2i *sizes, size_t count)
 {
-    tetromino->countOfShapes = count;
+    tetromino->countOfShapes = (int32_t)count;
     reset_tetromino_state(tetromino);
     for (size_t i = 0; i < count; ++i)
     {

@@ -29,15 +29,16 @@ float time_diff(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER cpu_freq)
     return result;
 }
 
+// Allocating screen buffer for rendering landed blocks and falling tetrominoes
+char screen[1000*1000];
+
 int main()
 {
     LARGE_INTEGER cpu_freq;
     QueryPerformanceFrequency(&cpu_freq);
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
     struct ConsoleSize console_size = get_console_size();
     const size_t console_array_size = sizeof(char) * console_size.width * console_size.height;
-    // Allocating screen buffer for rendering landed blocks and falling tetrominoes
-    char screen[sizeof(char) * console_array_size];
     // Console Raw output initiliazation
     HANDLE console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
     SetConsoleActiveScreenBuffer(console_handle);
