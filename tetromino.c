@@ -1,3 +1,4 @@
+#include "buffer.h"
 #include "landed.h"
 #include "checks.h"
 
@@ -21,7 +22,7 @@ void reset_tetromino_state(struct Tetromino *tetromino)
     tetromino->potentialTopLeft = tetromino->topLeft;
 }
 
-void rotate_tetromino(struct Tetromino *tetromino, int32_t *landed)
+void rotate_tetromino(struct Tetromino *tetromino, struct Buffer *landed)
 {
     if (tetromino->countOfShapes <= 1)
     {

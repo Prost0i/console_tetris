@@ -1,8 +1,10 @@
+#include "buffer.h"
 #include "tetromino.h"
 #include "draw.h"
 #include "landed.h"
 #include "checks.h"
 
+#include "buffer.c"
 #include "tetromino.c"
 #include "draw.c"
 #include "landed.c"
@@ -66,7 +68,13 @@ int main()
     draw_frame(&console, start_preview_frame_coord, end_preview_frame_coord);
 
     // landed blocks with field 10x16 (10 columns and 16 rows)
-    int32_t landed[LAND_SIZE] = {0};
+    char landed_buffer[10*16] = {0};
+    struct Buffer landed = {
+        .buffer = landed_buffer,
+        .width = 10,
+        .height = 16,
+        .size_in_bytes = 10*16
+    };
 
     // State buffer of falling tetromino and landed blocks
     char field_buffer[10*16];
@@ -100,7 +108,7 @@ int main()
         // randomly choose the next value for next loop iteration
         next_tetromino = rand() % 7;
 
-        if (game_over_check(&tetrominoes[current_tetromino], landed))
+        if (game_over_check(&tetrominoes[current_tetromino], &landed))
         {
             goto exit;
         }
@@ -126,7 +134,7 @@ int main()
             }
 
             const vec2i field_coord = { .x = 1, .y = 1 };
-            place_landed_blocks_to_field(&field, landed);
+            place_landed_blocks_to_field(&field, &landed);
 
             QueryPerformanceCounter(&y_cooldown2);
             // increased falling
@@ -158,15 +166,15 @@ int main()
             if (keys.up && time_diff(r_cooldown1, r_cooldown2, cpu_freq) > 0.2f)
             {
                 QueryPerformanceCounter(&r_cooldown1);
-                rotate_tetromino(&tetrominoes[current_tetromino], landed);
+                rotate_tetromino(&tetrominoes[current_tetromino], &landed);
             }
 
             place_tetromino_to_field(&field, &tetrominoes[current_tetromino]);
 
-            if (check_colision(&tetrominoes[current_tetromino], landed))
+            if (check_colision(&tetrominoes[current_tetromino], &landed))
             {
                 // if row filled increasing score and falling down speed 
-                check_filled_row(landed, &score, &falling_cooldown);
+                check_filled_row(&landed, &score, &falling_cooldown);
                 break;
             }
             else

@@ -1,16 +1,17 @@
 #include "landed.h"
+#include "draw.h"
 
-void landed_set_value(int32_t *landed, int32_t value, int32_t x, int32_t y)
+void landed_set_value(struct Buffer *landed, int32_t value, int32_t x, int32_t y)
 {
-    landed[LAND_WIDTH*y+x] = value;
+    landed->buffer[landed->width*y+x] = value;
 }
 
-int32_t landed_get_value(int32_t *landed, int32_t x, int32_t y)
+int32_t landed_get_value(struct Buffer *landed, int32_t x, int32_t y)
 {
-    return landed[LAND_WIDTH*y+x];
+    return landed->buffer[landed->width*y+x];
 }
 
-void land_tetromino(struct Tetromino *tetromino, int32_t *landed)
+void land_tetromino(struct Tetromino *tetromino, struct Buffer *landed)
 {
     for (int32_t y = 0; y < tetromino->shapes[tetromino->currentShape].height; ++y)
     {

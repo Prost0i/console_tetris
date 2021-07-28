@@ -16,15 +16,6 @@ void get_console_size(struct Buffer *console)
     console->size_in_bytes = console->width * console->height;
 }
 
-void buffer_set_value(struct Buffer *buffer, char value, int32_t x, int32_t y)
-{
-    buffer->buffer[buffer->width*y+x] = value;
-}
-
-char buffer_get_value(struct Buffer *buffer, int32_t x, int32_t y)
-{
-    return buffer->buffer[buffer->width*y+x];
-}
 
 void draw_tetromino(struct Buffer *console, struct Tetromino *tetromino, vec2i coord)
 {
@@ -86,9 +77,9 @@ void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetro
 
 void draw_field(struct Buffer* console, struct Buffer *field, vec2i coord)
 {
-    for (int32_t y = 0; y < LAND_HEIGHT; ++y)
+    for (int32_t y = 0; y < field->height; ++y)
     {
-        for (int32_t x = 0; x < LAND_WIDTH; ++x)
+        for (int32_t x = 0; x < field->width; ++x)
         {
             int32_t screen_x = x + coord.x;
             int32_t screen_y = y + coord.y;
@@ -114,11 +105,11 @@ void place_tetromino_to_field(struct Buffer *field, struct Tetromino *tetromino)
     }
 }
 
-void place_landed_blocks_to_field(struct Buffer *field, int32_t *landed)
+void place_landed_blocks_to_field(struct Buffer *field, struct Buffer *landed)
 {
-    for (int32_t y = 0; y < LAND_HEIGHT; ++y)
+    for (int32_t y = 0; y < landed->height; ++y)
     {
-        for (int32_t x = 0; x < LAND_WIDTH; ++x)
+        for (int32_t x = 0; x < landed->width; ++x)
         {
             int32_t screen_x = x;
             int32_t screen_y = y;

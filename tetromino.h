@@ -1,6 +1,8 @@
 #ifndef TETROMINO_H_
 #define TETROMINO_H_
 
+#include "buffer.h"
+
 #include <stdint.h>
 
 #define TETROMINO_SHAPE_SIZE 16
@@ -33,7 +35,7 @@ struct Tetromino
 void tetromino_set_value(struct Shape *tetrominoShape, int32_t value, int32_t x, int32_t y);
 int32_t tetromino_get_value(struct Shape *tetrominoShape, int32_t x, int32_t y);
 void reset_tetromino_state(struct Tetromino *tetromino);
-void rotate_tetromino(struct Tetromino *tetromino, int32_t *landed);
+void rotate_tetromino(struct Tetromino *tetromino, struct Buffer *landed);
 void create_tetromino(struct Tetromino *tetromino, const char **values, const vec2i *sizes, size_t count);
 void init_tetrominoes(struct Tetromino *tetrominoes);
 
