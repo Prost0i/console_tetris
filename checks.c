@@ -98,7 +98,7 @@ void check_filled_row(struct Buffer *landed, int32_t *score, float *falling_cool
             {
                 for (int32_t x = 0; x < landed->width; ++x)
                 {
-                    int32_t value = landed_get_value(landed, x, yy);
+                    int8_t value = landed_get_value(landed, x, yy);
                     landed_set_value(landed, value, x, yy+1);
                 }
             }

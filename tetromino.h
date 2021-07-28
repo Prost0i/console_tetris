@@ -17,7 +17,7 @@ typedef struct Vec2i
 // shape object
 struct Shape
 {
-    int32_t shape[TETROMINO_SHAPE_SIZE];
+    int8_t shape[TETROMINO_SHAPE_SIZE];
     int32_t width;
     int32_t height;
 };
@@ -32,8 +32,8 @@ struct Tetromino
     vec2i potentialTopLeft;
 };
 
-void tetromino_set_value(struct Shape *tetrominoShape, int32_t value, int32_t x, int32_t y);
-int32_t tetromino_get_value(struct Shape *tetrominoShape, int32_t x, int32_t y);
+void tetromino_set_value(struct Shape *tetrominoShape, int8_t value, int32_t x, int32_t y);
+int8_t tetromino_get_value(struct Shape *tetrominoShape, int32_t x, int32_t y);
 void reset_tetromino_state(struct Tetromino *tetromino);
 void rotate_tetromino(struct Tetromino *tetromino, struct Buffer *landed);
 void create_tetromino(struct Tetromino *tetromino, const char **values, const vec2i *sizes, size_t count);

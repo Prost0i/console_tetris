@@ -4,12 +4,12 @@
 
 #include "tetromino.h"
 
-void tetromino_set_value(struct Shape *tetrominoShape, int32_t value, int32_t x, int32_t y)
+void tetromino_set_value(struct Shape *tetrominoShape, int8_t value, int32_t x, int32_t y)
 {
     tetrominoShape->shape[tetrominoShape->width*y+x] = value;
 }
 
-int32_t tetromino_get_value(struct Shape *tetrominoShape, int32_t x, int32_t y)
+int8_t tetromino_get_value(struct Shape *tetrominoShape, int32_t x, int32_t y)
 {
     return tetrominoShape->shape[tetrominoShape->width*y+x];
 }
