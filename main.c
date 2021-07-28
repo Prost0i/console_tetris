@@ -37,8 +37,13 @@ int main()
     LARGE_INTEGER cpu_freq;
     QueryPerformanceFrequency(&cpu_freq);
     srand((unsigned int)time(NULL));
-    struct ConsoleSize console_size = get_console_size();
-    const size_t console_array_size = sizeof(char) * console_size.width * console_size.height;
+    struct Buffer console = {
+        .buffer = screen,
+        .width = 0,
+        .height = 0,
+        .size_in_bytes = 0
+    };
+    get_console_size(&console);
     // Console Raw output initiliazation
     HANDLE console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
     SetConsoleActiveScreenBuffer(console_handle);
@@ -48,12 +53,28 @@ int main()
         .Y = 0,
     };
     // Clear screen with space characters
-    memset(screen, ' ', console_array_size);
-    draw_frames(screen, console_size.width);
-    WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
+    memset(console.buffer, ' ', console.size_in_bytes);
+
+    // Play field frame drawing to console buffer
+    const vec2i start_land_frame_coord = { .x = 0, .y = 0 };
+    const vec2i end_land_frame_coord = { .x = 11, .y = 17 };
+    draw_frame(&console, start_land_frame_coord, end_land_frame_coord);
+
+    // Next tetromino preview frame drawing to console buffer
+    const vec2i start_preview_frame_coord = { .x = 13, .y = 0 };
+    const vec2i end_preview_frame_coord = { .x = 18, .y = 5 };
+    draw_frame(&console, start_preview_frame_coord, end_preview_frame_coord);
 
     // landed blocks with field 10x16 (10 columns and 16 rows)
     int32_t landed[LAND_SIZE] = {0};
+
+    // State buffer of falling tetromino and landed blocks
+    char field_buffer[10*16];
+    struct Buffer field = {
+        .buffer = field_buffer,
+        .width = 10,
+        .height = 16
+    };
 
     struct Tetromino tetrominoes[7] = {0};
     init_tetrominoes(tetrominoes);
@@ -84,7 +105,11 @@ int main()
             goto exit;
         }
 
-        draw_next_tetromino_preview(&tetrominoes[next_tetromino], screen, &console_size);
+        const vec2i tetromino_preview_coord = {
+            .x = start_preview_frame_coord.x+1,
+            .y = start_preview_frame_coord.y+1
+        };
+        draw_next_tetromino_preview(&console, &tetrominoes[next_tetromino], tetromino_preview_coord);
 
         for (;;)
         {
@@ -100,7 +125,8 @@ int main()
                 goto exit;
             }
 
-            place_landed_blocks_to_screen(landed, screen, &console_size);
+            const vec2i field_coord = { .x = 1, .y = 1 };
+            place_landed_blocks_to_field(&field, landed);
 
             QueryPerformanceCounter(&y_cooldown2);
             // increased falling
@@ -135,7 +161,7 @@ int main()
                 rotate_tetromino(&tetrominoes[current_tetromino], landed);
             }
 
-            place_tetromino_to_screen(&tetrominoes[current_tetromino], screen, &console_size);
+            place_tetromino_to_field(&field, &tetrominoes[current_tetromino]);
 
             if (check_colision(&tetrominoes[current_tetromino], landed))
             {
@@ -148,18 +174,21 @@ int main()
                 tetrominoes[current_tetromino].topLeft = tetrominoes[current_tetromino].potentialTopLeft;
             }
 
+            // Copy field buffer to console buffer
+            draw_field(&console, &field, field_coord);
+
             // Copy screen buffer to console buffer
-            WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
+            WriteConsoleOutputCharacter(console_handle, console.buffer, console.width * console.height, zero_coord, &bytes_written);
         }
     }
 
 exit:
     // Copy last frame to console buffer
-    WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
-    memset(screen, ' ', console_array_size);
-    sprintf(screen, "Score: %d", score);
+    WriteConsoleOutputCharacter(console_handle, console.buffer, console.width * console.height, zero_coord, &bytes_written);
+    memset(console.buffer, ' ', console.size_in_bytes);
+    sprintf(console.buffer, "Score: %d", score);
     screen[strlen(screen)] = ' ';
-    WriteConsoleOutputCharacter(console_handle, screen, console_size.width * console_size.height, zero_coord, &bytes_written);
+    WriteConsoleOutputCharacter(console_handle, console.buffer, console.width * console.height, zero_coord, &bytes_written);
     Sleep(2000);
 
     printf("Score: %d\n", score);

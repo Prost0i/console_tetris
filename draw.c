@@ -6,46 +6,27 @@
 #include "draw.h"
 
 // Getting console buffer width and height
-struct ConsoleSize get_console_size()
+void get_console_size(struct Buffer *console)
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    struct ConsoleSize console_size;
 
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    console_size.width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    console_size.height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-
-    return console_size;
+    console->width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    console->height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    console->size_in_bytes = console->width * console->height;
 }
 
-void screen_set_value(char *screen, char value, int32_t x, int32_t y, int32_t width)
+void buffer_set_value(struct Buffer *buffer, char value, int32_t x, int32_t y)
 {
-    screen[width*y+x] = value;
+    buffer->buffer[buffer->width*y+x] = value;
 }
 
-char screen_get_value(char *screen, int32_t x, int32_t y, int32_t width)
+char buffer_get_value(struct Buffer *buffer, int32_t x, int32_t y)
 {
-    return screen[width*y+x];
+    return buffer->buffer[buffer->width*y+x];
 }
 
-void place_tetromino_to_screen(struct Tetromino *tetromino, char *screen, struct ConsoleSize *console_size)
-{
-    for (int32_t y = 0; y < tetromino->shapes[tetromino->currentShape].height; ++y)
-    {
-        for (int32_t x = 0; x < tetromino->shapes[tetromino->currentShape].width; ++x)
-        {
-            if (tetromino_get_value(&tetromino->shapes[tetromino->currentShape], x, y) != 0)
-            {
-                const int32_t screen_x = x+tetromino->topLeft.x + SCREEN_X_OFFSET;
-                const int32_t screen_y = y+tetromino->topLeft.y + SCREEN_Y_OFFSET;
-                const int32_t screen_w = console_size->width;
-                screen_set_value(screen, 'T', screen_x, screen_y, screen_w);
-            }
-        }
-    }
-}
-
-void draw_tetromino(struct Tetromino *tetromino, vec2i coord, char *screen, struct ConsoleSize *console_size)
+void draw_tetromino(struct Buffer *console, struct Tetromino *tetromino, vec2i coord)
 {
     for (int32_t y = 0; y < tetromino->shapes[0].height; ++y)
     {
@@ -55,86 +36,101 @@ void draw_tetromino(struct Tetromino *tetromino, vec2i coord, char *screen, stru
             {
                 const int32_t screen_x = x+coord.x;
                 const int32_t screen_y = y+coord.y;
-                const int32_t screen_w = console_size->width;
-                screen_set_value(screen, 'T', screen_x, screen_y, screen_w);
+                buffer_set_value(console, 'T', screen_x, screen_y);
             }
         }
     }
 }
 
-void place_landed_blocks_to_screen(int32_t *landed, char *screen, struct ConsoleSize *console_size)
+void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)
+{
+    // drawing angles
+    buffer_set_value(console, '+', start_coord.x, start_coord.y);
+    buffer_set_value(console, '+', end_coord.x, start_coord.y);
+    buffer_set_value(console, '+', start_coord.x, end_coord.y);
+    buffer_set_value(console, '+', end_coord.x, end_coord.y);
+
+    // drawing left and right boundary
+    for (int i = start_coord.y+1; i < end_coord.y; ++i)
+    {
+        buffer_set_value(console, '|', start_coord.x, i);
+        buffer_set_value(console, '|', end_coord.x, i);
+    }
+    // drawing ceiling and floor
+    for (int i = start_coord.x+1; i < end_coord.x; ++i)
+    {
+        buffer_set_value(console, '-', i, start_coord.y);
+        buffer_set_value(console, '-', i, end_coord.y);
+    }
+}
+
+#define PREVIEW_HEIGHT 4
+#define PREVIEW_WIDTH 4
+
+void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetromino, vec2i coord)
+{
+    const int max_y = coord.y+PREVIEW_HEIGHT;
+    const int max_x = coord.x+PREVIEW_WIDTH;
+    // clearing preview window from previous tetromino
+    for (int y = coord.y; y < max_y; ++y)
+    {
+        for (int x = coord.x; x < max_x; ++x)
+        {
+            buffer_set_value(console, ' ', x, y);
+        }
+    }
+
+    // placing tetromino in preview window
+    draw_tetromino(console, tetromino, coord);
+}
+
+void draw_field(struct Buffer* console, struct Buffer *field, vec2i coord)
 {
     for (int32_t y = 0; y < LAND_HEIGHT; ++y)
     {
         for (int32_t x = 0; x < LAND_WIDTH; ++x)
         {
-            const int32_t screen_x = x + SCREEN_X_OFFSET;
-            const int32_t screen_y = y + SCREEN_Y_OFFSET;
-            const int32_t screen_w = console_size->width;
+            int32_t screen_x = x + coord.x;
+            int32_t screen_y = y + coord.y;
+            char value = buffer_get_value(field, x, y);
+            buffer_set_value(console, value, screen_x, screen_y);
+        }
+    }
+}
 
-            // Mapping landed tetris blocks to screen buffer
+void place_tetromino_to_field(struct Buffer *field, struct Tetromino *tetromino)
+{
+    for (int32_t y = 0; y < tetromino->shapes[tetromino->currentShape].height; ++y)
+    {
+        for (int32_t x = 0; x < tetromino->shapes[tetromino->currentShape].width; ++x)
+        {
+            if (tetromino_get_value(&tetromino->shapes[tetromino->currentShape], x, y) != 0)
+            {
+                const int32_t screen_x = x+tetromino->topLeft.x;
+                const int32_t screen_y = y+tetromino->topLeft.y;
+                buffer_set_value(field, 'T', screen_x, screen_y);
+            }
+        }
+    }
+}
+
+void place_landed_blocks_to_field(struct Buffer *field, int32_t *landed)
+{
+    for (int32_t y = 0; y < LAND_HEIGHT; ++y)
+    {
+        for (int32_t x = 0; x < LAND_WIDTH; ++x)
+        {
+            int32_t screen_x = x;
+            int32_t screen_y = y;
+            // Mapping landed tetris blocks to field buffer
             if (landed_get_value(landed, x, y) != 0)
             {
-                screen_set_value(screen, 'X', screen_x, screen_y, screen_w);
+                buffer_set_value(field, 'X', screen_x, screen_y);
             }
             else
             {
-                screen_set_value(screen, ' ', screen_x, screen_y, screen_w);
+                buffer_set_value(field, ' ', screen_x, screen_y);
             }
         }
     }
-}
-
-void draw_frames(char *screen, int32_t width)
-{
-    // main play field frame:
-    // drawing left and right boundary
-    for (int i = 1; i < LAND_HEIGHT+1; ++i)
-    {
-        screen_set_value(screen, '|', 0, i, width);
-        screen_set_value(screen, '|', 11, i, width);
-    }
-    // drawing angles
-    screen_set_value(screen, '+', 0, 0, width);
-    screen_set_value(screen, '+', 11, 0, width);
-    screen_set_value(screen, '+', 0, 17, width);
-    screen_set_value(screen, '+', 11, 17, width);
-    // drawing ceiling and floor
-    for (int i = 1; i < LAND_WIDTH+1; ++i)
-    {
-        screen_set_value(screen, '-', i, 0, width);
-        screen_set_value(screen, '-', i, 17, width);
-    }
-
-    // next tetromino preview frame:
-    // drawing right boundary
-    for (int i = 1; i < 5; ++i)
-    {
-        screen_set_value(screen, '|', 16, i, width);
-    }
-    // drawing ceiling and floor
-    for (int i = 12; i < 16; ++i)
-    {
-        screen_set_value(screen, '-', i, 0, width);
-        screen_set_value(screen, '-', i, 5, width);
-    }
-    // drawing angles
-    screen_set_value(screen, '+', 16, 0, width);
-    screen_set_value(screen, '+', 16, 5, width);
-}
-
-void draw_next_tetromino_preview(struct Tetromino *tetromino, char *screen, struct ConsoleSize *console_size)
-{
-    // clearing preview window from previous tetromino
-    for (int y = 1; y < 5; ++y)
-    {
-        for (int x = 12; x < 16; ++x)
-        {
-            screen_set_value(screen, ' ', x, y, console_size->width);
-        }
-    }
-
-    // placing tetromino in preview window
-    vec2i next_tetromino_coord = { .x = 12, .y = 1 };
-    draw_tetromino(tetromino, next_tetromino_coord, screen, console_size);
 }
