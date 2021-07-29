@@ -5,7 +5,6 @@
 #include "tetromino.h"
 
 #include <stdint.h>
-void get_console_size(struct Buffer *console);
 
 void draw_tetromino(struct Buffer *console, struct Tetromino *tetromino, vec2i coord);
 void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord);

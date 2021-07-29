@@ -1,21 +1,7 @@
 #include "tetromino.h"
 #include "landed.h"
 
-#include <Windows.h>
-
 #include "draw.h"
-
-// Getting console buffer width and height
-void get_console_size(struct Buffer *console)
-{
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    console->width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    console->height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    console->size_in_bytes = console->width * console->height;
-}
-
 
 void draw_tetromino(struct Buffer *console, struct Tetromino *tetromino, vec2i coord)
 {

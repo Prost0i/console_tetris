@@ -3,6 +3,7 @@
 #include "draw.h"
 #include "landed.h"
 #include "checks.h"
+#include "platform.h"
 
 #include "buffer.c"
 #include "tetromino.c"
@@ -10,34 +11,20 @@
 #include "landed.c"
 #include "checks.c"
 
-#include <Windows.h>
+#ifdef _WIN32
+#include "win32_platform.c"
+#endif
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
-
-struct Keys
-{
-    bool left;
-    bool right;
-    bool up;
-    bool down;
-    bool escape;
-};
-
-float time_diff(LARGE_INTEGER start, LARGE_INTEGER end, LARGE_INTEGER cpu_freq)
-{
-    float result = ((float)(end.QuadPart - start.QuadPart) / (float)cpu_freq.QuadPart);
-    return result;
-}
 
 // Allocating screen buffer for rendering landed blocks and falling tetrominoes
 char screen[1000*1000];
 
 int main()
 {
-    LARGE_INTEGER cpu_freq;
-    QueryPerformanceFrequency(&cpu_freq);
     srand((unsigned int)time(NULL));
     struct Buffer console = {
         .buffer = screen,
@@ -45,15 +32,8 @@ int main()
         .height = 0,
         .size_in_bytes = 0
     };
-    get_console_size(&console);
-    // Console Raw output initiliazation
-    HANDLE console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-    SetConsoleActiveScreenBuffer(console_handle);
-    DWORD bytes_written = 0;
-    const COORD zero_coord = {
-        .X = 0,
-        .Y = 0,
-    };
+    init_console(&console);
+    init_time();
     // Clear screen with space characters
     memset(console.buffer, ' ', console.size_in_bytes);
 
@@ -87,14 +67,13 @@ int main()
     struct Tetromino tetrominoes[7] = {0};
     init_tetrominoes(tetrominoes);
 
-    // TODO Remove all this QPC win32 bullshit!!
-    LARGE_INTEGER x_cooldown1, x_cooldown2,
-                  y_cooldown1, y_cooldown2,
-                  r_cooldown1, r_cooldown2;
+    float x_cooldown1, x_cooldown2,
+          y_cooldown1, y_cooldown2,
+          r_cooldown1, r_cooldown2;
 
-    QueryPerformanceCounter(&x_cooldown1);
-    QueryPerformanceCounter(&y_cooldown1);
-    QueryPerformanceCounter(&r_cooldown1);
+    x_cooldown1 = get_time_in_seconds();
+    y_cooldown1 = get_time_in_seconds();
+    r_cooldown1 = get_time_in_seconds();
     int32_t score = 0;
     // choose current tetromino
     int32_t next_tetromino = rand() % 7;
@@ -122,11 +101,11 @@ int main()
         for (;;)
         {
             // input
-            keys.left = GetAsyncKeyState(VK_LEFT);
-            keys.right = GetAsyncKeyState(VK_RIGHT);
-            keys.up = GetAsyncKeyState(VK_UP);
-            keys.down = GetAsyncKeyState(VK_DOWN);
-            keys.escape = GetAsyncKeyState(VK_ESCAPE);
+            keys.left = get_key(KEY_LEFT);
+            keys.right = get_key(KEY_RIGHT);
+            keys.up = get_key(KEY_UP);
+            keys.down = get_key(KEY_DOWN);
+            keys.escape = get_key(KEY_ESCAPE);
 
             if (keys.escape)
             {
@@ -136,36 +115,36 @@ int main()
             const vec2i field_coord = { .x = 1, .y = 1 };
             place_landed_blocks_to_field(&field, &landed);
 
-            QueryPerformanceCounter(&y_cooldown2);
+            y_cooldown2 = get_time_in_seconds();
             // increased falling
-            if (keys.down && time_diff(y_cooldown1, y_cooldown2, cpu_freq) > (falling_cooldown / 5.0f))
+            if (keys.down && time_diff(y_cooldown1, y_cooldown2) > (falling_cooldown / 5.0f))
             {
-                QueryPerformanceCounter(&y_cooldown1);
+                y_cooldown1 = get_time_in_seconds();
                 ++tetrominoes[current_tetromino].potentialTopLeft.y;
             }
             // normal falling
-            else if (time_diff(y_cooldown1, y_cooldown2, cpu_freq) > falling_cooldown)
+            else if (time_diff(y_cooldown1, y_cooldown2) > falling_cooldown)
             {
-                QueryPerformanceCounter(&y_cooldown1);
+                y_cooldown1 = get_time_in_seconds();
                 ++tetrominoes[current_tetromino].potentialTopLeft.y;
             }
 
-            QueryPerformanceCounter(&x_cooldown2);
-            if (keys.left && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
+            x_cooldown2 = get_time_in_seconds();
+            if (keys.left && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
             {
-                QueryPerformanceCounter(&x_cooldown1);
+                x_cooldown1 = get_time_in_seconds();
                 --tetrominoes[current_tetromino].potentialTopLeft.x;
             }
-            else if (keys.right && time_diff(x_cooldown1, x_cooldown2, cpu_freq) > 0.1f)
+            else if (keys.right && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
             {
-                QueryPerformanceCounter(&x_cooldown1);
+                x_cooldown1 = get_time_in_seconds();
                 ++tetrominoes[current_tetromino].potentialTopLeft.x;
             }
             
-            QueryPerformanceCounter(&r_cooldown2);
-            if (keys.up && time_diff(r_cooldown1, r_cooldown2, cpu_freq) > 0.2f)
+            r_cooldown2 = get_time_in_seconds();
+            if (keys.up && time_diff(r_cooldown1, r_cooldown2) > 0.2f)
             {
-                QueryPerformanceCounter(&r_cooldown1);
+                r_cooldown1 = get_time_in_seconds();
                 rotate_tetromino(&tetrominoes[current_tetromino], &landed);
             }
 
@@ -186,18 +165,20 @@ int main()
             draw_field(&console, &field, field_coord);
 
             // Copy screen buffer to console buffer
-            WriteConsoleOutputCharacter(console_handle, console.buffer, console.width * console.height, zero_coord, &bytes_written);
+            write_to_console(&console);
         }
     }
 
 exit:
     // Copy last frame to console buffer
-    WriteConsoleOutputCharacter(console_handle, console.buffer, console.width * console.height, zero_coord, &bytes_written);
+    write_to_console(&console);
     memset(console.buffer, ' ', console.size_in_bytes);
     sprintf(console.buffer, "Score: %d", score);
     screen[strlen(screen)] = ' ';
-    WriteConsoleOutputCharacter(console_handle, console.buffer, console.width * console.height, zero_coord, &bytes_written);
+    write_to_console(&console);
     Sleep(2000);
+
+    close_console(&console);
 
     printf("Score: %d\n", score);
     return 0;
