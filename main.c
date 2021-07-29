@@ -47,6 +47,14 @@ int main()
     const vec2i end_preview_frame_coord = { .x = 18, .y = 5 };
     draw_frame(&console, start_preview_frame_coord, end_preview_frame_coord);
 
+    // State buffer of falling tetromino and landed blocks
+    char field_buffer[10*16] = {0};
+    struct Buffer field = {
+        .buffer = field_buffer,
+        .width = 10,
+        .height = 16,
+    };
+
     // landed blocks with field 10x16 (10 columns and 16 rows)
     char landed_buffer[10*16] = {0};
     struct Buffer landed = {
@@ -54,14 +62,6 @@ int main()
         .width = 10,
         .height = 16,
         .size_in_bytes = 10*16
-    };
-
-    // State buffer of falling tetromino and landed blocks
-    char field_buffer[10*16];
-    struct Buffer field = {
-        .buffer = field_buffer,
-        .width = 10,
-        .height = 16
     };
 
     struct Tetromino tetrominoes[7] = {0};
@@ -74,23 +74,83 @@ int main()
     x_cooldown1 = get_time_in_seconds();
     y_cooldown1 = get_time_in_seconds();
     r_cooldown1 = get_time_in_seconds();
-    int32_t score = 0;
+
     // choose current tetromino
     int32_t next_tetromino = rand() % 7;
+    // randomly choose the next value for next loop iteration
+    int32_t current_tetromino = rand() % 7;
+
+    int32_t score = 0;
     float falling_cooldown = 0.5f;
 
     for (;;)
     {
         struct Keys keys;
-        // setting current tetromino by next_tetromino value from previous loop iteration
-        int32_t current_tetromino = next_tetromino;
-        // randomly choose the next value for next loop iteration
-        next_tetromino = rand() % 7;
 
-        if (game_over_check(&tetrominoes[current_tetromino], &landed))
+        // input
+        keys.left = get_key(KEY_LEFT);
+        keys.right = get_key(KEY_RIGHT);
+        keys.up = get_key(KEY_UP);
+        keys.down = get_key(KEY_DOWN);
+        keys.escape = get_key(KEY_ESCAPE);
+
+        if (keys.escape)
         {
-            goto exit;
+            break;
         }
+
+        y_cooldown2 = get_time_in_seconds();
+        // increased falling
+        if (keys.down && time_diff(y_cooldown1, y_cooldown2) > (falling_cooldown / 5.0f))
+        {
+            y_cooldown1 = get_time_in_seconds();
+            ++tetrominoes[current_tetromino].potentialTopLeft.y;
+        }
+        // normal falling
+        else if (time_diff(y_cooldown1, y_cooldown2) > falling_cooldown)
+        {
+            y_cooldown1 = get_time_in_seconds();
+            ++tetrominoes[current_tetromino].potentialTopLeft.y;
+        }
+
+        x_cooldown2 = get_time_in_seconds();
+        if (keys.left && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
+        {
+            x_cooldown1 = get_time_in_seconds();
+            --tetrominoes[current_tetromino].potentialTopLeft.x;
+        }
+        else if (keys.right && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
+        {
+            x_cooldown1 = get_time_in_seconds();
+            ++tetrominoes[current_tetromino].potentialTopLeft.x;
+        }
+        
+        r_cooldown2 = get_time_in_seconds();
+        if (keys.up && time_diff(r_cooldown1, r_cooldown2) > 0.2f)
+        {
+            r_cooldown1 = get_time_in_seconds();
+            rotate_tetromino(&tetrominoes[current_tetromino], &landed);
+        }
+
+        if (check_colision(&tetrominoes[current_tetromino], &landed))
+        {
+            // if row filled increasing score and falling down speed 
+            check_filled_row(&landed, &score, &falling_cooldown);
+            if (game_over_check(&tetrominoes[next_tetromino], &landed))
+            {
+                break;
+            }
+
+            current_tetromino = next_tetromino;
+            next_tetromino = rand() % 7;
+        }
+        else
+        {
+            tetrominoes[current_tetromino].topLeft = tetrominoes[current_tetromino].potentialTopLeft;
+        }
+
+        place_landed_blocks_to_field(&field, &landed);
+        place_tetromino_to_field(&field, &tetrominoes[current_tetromino]);
 
         const vec2i tetromino_preview_coord = {
             .x = start_preview_frame_coord.x+1,
@@ -98,78 +158,13 @@ int main()
         };
         draw_next_tetromino_preview(&console, &tetrominoes[next_tetromino], tetromino_preview_coord);
 
-        for (;;)
-        {
-            // input
-            keys.left = get_key(KEY_LEFT);
-            keys.right = get_key(KEY_RIGHT);
-            keys.up = get_key(KEY_UP);
-            keys.down = get_key(KEY_DOWN);
-            keys.escape = get_key(KEY_ESCAPE);
+        const vec2i field_coord = { .x = 1, .y = 1 };
+        draw_field(&console, &field, field_coord);
 
-            if (keys.escape)
-            {
-                goto exit;
-            }
-
-            const vec2i field_coord = { .x = 1, .y = 1 };
-            place_landed_blocks_to_field(&field, &landed);
-
-            y_cooldown2 = get_time_in_seconds();
-            // increased falling
-            if (keys.down && time_diff(y_cooldown1, y_cooldown2) > (falling_cooldown / 5.0f))
-            {
-                y_cooldown1 = get_time_in_seconds();
-                ++tetrominoes[current_tetromino].potentialTopLeft.y;
-            }
-            // normal falling
-            else if (time_diff(y_cooldown1, y_cooldown2) > falling_cooldown)
-            {
-                y_cooldown1 = get_time_in_seconds();
-                ++tetrominoes[current_tetromino].potentialTopLeft.y;
-            }
-
-            x_cooldown2 = get_time_in_seconds();
-            if (keys.left && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
-            {
-                x_cooldown1 = get_time_in_seconds();
-                --tetrominoes[current_tetromino].potentialTopLeft.x;
-            }
-            else if (keys.right && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
-            {
-                x_cooldown1 = get_time_in_seconds();
-                ++tetrominoes[current_tetromino].potentialTopLeft.x;
-            }
-            
-            r_cooldown2 = get_time_in_seconds();
-            if (keys.up && time_diff(r_cooldown1, r_cooldown2) > 0.2f)
-            {
-                r_cooldown1 = get_time_in_seconds();
-                rotate_tetromino(&tetrominoes[current_tetromino], &landed);
-            }
-
-            place_tetromino_to_field(&field, &tetrominoes[current_tetromino]);
-
-            if (check_colision(&tetrominoes[current_tetromino], &landed))
-            {
-                // if row filled increasing score and falling down speed 
-                check_filled_row(&landed, &score, &falling_cooldown);
-                break;
-            }
-            else
-            {
-                tetrominoes[current_tetromino].topLeft = tetrominoes[current_tetromino].potentialTopLeft;
-            }
-
-            // Copy field buffer to console buffer
-            draw_field(&console, &field, field_coord);
-
-            // Copy screen buffer to console buffer
-            write_to_console(&console);
-        }
+        // Copy screen buffer to console buffer
+        write_to_console(&console);
     }
 
-exit:
     // Copy last frame to console buffer
     write_to_console(&console);
     memset(console.buffer, ' ', console.size_in_bytes);
