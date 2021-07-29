@@ -6,7 +6,6 @@
 
 #include <stdint.h>
 
-void draw_tetromino(struct Buffer *console, struct Tetromino *tetromino, vec2i coord);
 void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord);
 void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetromino, vec2i coord);
 

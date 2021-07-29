@@ -3,22 +3,6 @@
 
 #include "draw.h"
 
-void draw_tetromino(struct Buffer *console, struct Tetromino *tetromino, vec2i coord)
-{
-    for (int32_t y = 0; y < tetromino->shapes[0].height; ++y)
-    {
-        for (int32_t x = 0; x < tetromino->shapes[0].width; ++x)
-        {
-            if (tetromino_get_value(&tetromino->shapes[tetromino->currentShape], x, y) != 0)
-            {
-                const int32_t screen_x = x+coord.x;
-                const int32_t screen_y = y+coord.y;
-                buffer_set_value(console, 'T', screen_x, screen_y);
-            }
-        }
-    }
-}
-
 void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)
 {
     // drawing angles
@@ -58,7 +42,18 @@ void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetro
     }
 
     // placing tetromino in preview window
-    draw_tetromino(console, tetromino, coord);
+    for (int32_t y = 0; y < tetromino->shapes[0].height; ++y)
+    {
+        for (int32_t x = 0; x < tetromino->shapes[0].width; ++x)
+        {
+            if (tetromino_get_value(&tetromino->shapes[0], x, y) != 0)
+            {
+                const int32_t screen_x = x+coord.x;
+                const int32_t screen_y = y+coord.y;
+                buffer_set_value(console, 'T', screen_x, screen_y);
+            }
+        }
+    }
 }
 
 void draw_field(struct Buffer* console, struct Buffer *field, vec2i coord)
