@@ -4,6 +4,7 @@
 #include "buffer.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #define TETROMINO_SHAPE_SIZE 16
 #define MAX_TETROMINO_SHAPE_STATES 4

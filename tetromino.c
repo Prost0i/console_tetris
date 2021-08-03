@@ -4,6 +4,8 @@
 
 #include "tetromino.h"
 
+#include <stdlib.h>
+
 void tetromino_set_value(struct Shape *tetrominoShape, int8_t value, int32_t x, int32_t y)
 {
     tetrominoShape->shape[tetrominoShape->width*y+x] = value;

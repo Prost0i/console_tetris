@@ -15,7 +15,12 @@
 #include "win32_platform.c"
 #endif
 
+#ifdef __unix__
+#include "posix_platform.c"
+#endif
+
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
@@ -67,7 +72,7 @@ int main()
     struct Tetromino tetrominoes[7] = {0};
     init_tetrominoes(tetrominoes);
 
-    float x_cooldown1, x_cooldown2,
+    double x_cooldown1, x_cooldown2,
           y_cooldown1, y_cooldown2,
           r_cooldown1, r_cooldown2;
 
@@ -81,18 +86,14 @@ int main()
     int32_t current_tetromino = rand() % 7;
 
     int32_t score = 0;
-    float falling_cooldown = 0.5f;
+    double falling_cooldown = 0.5;
 
     for (;;)
     {
         struct Keys keys;
 
         // input
-        keys.left = get_key(KEY_LEFT);
-        keys.right = get_key(KEY_RIGHT);
-        keys.up = get_key(KEY_UP);
-        keys.down = get_key(KEY_DOWN);
-        keys.escape = get_key(KEY_ESCAPE);
+        get_key(&keys);
 
         if (keys.escape)
         {
@@ -101,7 +102,7 @@ int main()
 
         y_cooldown2 = get_time_in_seconds();
         // increased falling
-        if (keys.down && time_diff(y_cooldown1, y_cooldown2) > (falling_cooldown / 5.0f))
+        if (keys.down && time_diff(y_cooldown1, y_cooldown2) > (falling_cooldown / 5.0))
         {
             y_cooldown1 = get_time_in_seconds();
             ++tetrominoes[current_tetromino].potentialTopLeft.y;
@@ -114,19 +115,22 @@ int main()
         }
 
         x_cooldown2 = get_time_in_seconds();
-        if (keys.left && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
+        double td = time_diff(x_cooldown1, x_cooldown2);
+        // if (keys.left && time_diff(x_cooldown1, x_cooldown2) > 0.1)
+        if (keys.left && td > 0.1)
         {
             x_cooldown1 = get_time_in_seconds();
             --tetrominoes[current_tetromino].potentialTopLeft.x;
         }
-        else if (keys.right && time_diff(x_cooldown1, x_cooldown2) > 0.1f)
+        // else if (keys.right && time_diff(x_cooldown1, x_cooldown2) > 0.1)
+        else if (keys.right && td > 0.1)
         {
             x_cooldown1 = get_time_in_seconds();
             ++tetrominoes[current_tetromino].potentialTopLeft.x;
         }
         
         r_cooldown2 = get_time_in_seconds();
-        if (keys.up && time_diff(r_cooldown1, r_cooldown2) > 0.2f)
+        if (keys.up && time_diff(r_cooldown1, r_cooldown2) > 0.2)
         {
             r_cooldown1 = get_time_in_seconds();
             rotate_tetromino(&tetrominoes[current_tetromino], &landed);
@@ -164,14 +168,8 @@ int main()
         // Copy screen buffer to console buffer
         write_to_console(&console);
     }
-
     // Copy last frame to console buffer
     write_to_console(&console);
-    memset(console.buffer, ' ', console.size_in_bytes);
-    sprintf(console.buffer, "Score: %d", score);
-    screen[strlen(screen)] = ' ';
-    write_to_console(&console);
-    Sleep(2000);
 
     close_console(&console);
 

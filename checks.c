@@ -71,7 +71,7 @@ int32_t check_colision(struct Tetromino *tetromino, struct Buffer *landed)
     return 0;
 }
 
-void check_filled_row(struct Buffer *landed, int32_t *score, float *falling_cooldown)
+void check_filled_row(struct Buffer *landed, int32_t *score, double *falling_cooldown)
 {
     for (int32_t y = 0; y < landed->height; ++y)
     {

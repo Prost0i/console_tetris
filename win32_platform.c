@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <string.h>
 
 #include "platform.h"
 
@@ -44,33 +45,23 @@ void init_time()
     QueryPerformanceFrequency(&win32_time_frequency);
 }
 
-float get_time_in_seconds()
+double get_time_in_seconds()
 {
     LARGE_INTEGER result;
     QueryPerformanceCounter(&result);
-    return (float)result.QuadPart;
+    return (double)result.QuadPart;
 }
 
-float time_diff(float start, float end)
+double time_diff(double start, double end)
 {
-    return ((end - start) / (float)win32_time_frequency.QuadPart);
+    return ((end - start) / (double)win32_time_frequency.QuadPart);
 }
 
-bool get_key(enum KEY_NUMS key)
+void get_key(struct Keys *keys)
 {
-    switch(key)
-    {
-        case KEY_LEFT:
-            return GetAsyncKeyState(VK_LEFT);
-        case KEY_RIGHT:
-            return GetAsyncKeyState(VK_RIGHT);
-        case KEY_UP:
-            return GetAsyncKeyState(VK_UP);
-        case KEY_DOWN:
-            return GetAsyncKeyState(VK_DOWN);
-        case KEY_ESCAPE:
-            return GetAsyncKeyState(VK_ESCAPE);
-        default:
-            return false;
-    }
+    keys->left = GetAsyncKeyState(VK_LEFT);
+    keys->right = GetAsyncKeyState(VK_RIGHT);
+    keys->up = GetAsyncKeyState(VK_UP);
+    keys->down = GetAsyncKeyState(VK_DOWN);
+    keys->escape = GetAsyncKeyState(VK_ESCAPE);
 }
