@@ -25,6 +25,12 @@
 #include <stdint.h>
 #include <time.h>
 
+struct Cooldowns {
+    double x1, x2,
+          y1, y2,
+          r1, r2;
+};
+
 // Allocating screen buffer for rendering landed blocks and falling tetrominoes
 char screen[1000*1000];
 
@@ -72,13 +78,10 @@ int main()
     struct Tetromino tetrominoes[7] = {0};
     init_tetrominoes(tetrominoes);
 
-    double x_cooldown1, x_cooldown2,
-          y_cooldown1, y_cooldown2,
-          r_cooldown1, r_cooldown2;
-
-    x_cooldown1 = get_time_in_seconds();
-    y_cooldown1 = get_time_in_seconds();
-    r_cooldown1 = get_time_in_seconds();
+    struct Cooldowns cd;
+    cd.x1 = get_time_in_seconds();
+    cd.y1 = get_time_in_seconds();
+    cd.r1 = get_time_in_seconds();
 
     // choose current tetromino
     int32_t next_tetromino = rand() % 7;
@@ -100,39 +103,36 @@ int main()
             break;
         }
 
-        y_cooldown2 = get_time_in_seconds();
+        cd.y2 = get_time_in_seconds();
         // increased falling
-        if (keys.down && time_diff(y_cooldown1, y_cooldown2) > (falling_cooldown / 5.0))
+        if (keys.down && time_diff(cd.y1, cd.y2) > (falling_cooldown / 5.0))
         {
-            y_cooldown1 = get_time_in_seconds();
+            cd.y1 = get_time_in_seconds();
             ++tetrominoes[current_tetromino].potentialTopLeft.y;
         }
         // normal falling
-        else if (time_diff(y_cooldown1, y_cooldown2) > falling_cooldown)
+        else if (time_diff(cd.y1, cd.y2) > falling_cooldown)
         {
-            y_cooldown1 = get_time_in_seconds();
+            cd.y1 = get_time_in_seconds();
             ++tetrominoes[current_tetromino].potentialTopLeft.y;
         }
 
-        x_cooldown2 = get_time_in_seconds();
-        double td = time_diff(x_cooldown1, x_cooldown2);
-        // if (keys.left && time_diff(x_cooldown1, x_cooldown2) > 0.1)
-        if (keys.left && td > 0.1)
+        cd.x2 = get_time_in_seconds();
+        if (keys.left && time_diff(cd.x1, cd.x2) > 0.1)
         {
-            x_cooldown1 = get_time_in_seconds();
+            cd.x1 = get_time_in_seconds();
             --tetrominoes[current_tetromino].potentialTopLeft.x;
         }
-        // else if (keys.right && time_diff(x_cooldown1, x_cooldown2) > 0.1)
-        else if (keys.right && td > 0.1)
+        else if (keys.right && time_diff(cd.x1, cd.x2) > 0.1)
         {
-            x_cooldown1 = get_time_in_seconds();
+            cd.x1 = get_time_in_seconds();
             ++tetrominoes[current_tetromino].potentialTopLeft.x;
         }
         
-        r_cooldown2 = get_time_in_seconds();
-        if (keys.up && time_diff(r_cooldown1, r_cooldown2) > 0.2)
+        cd.r2 = get_time_in_seconds();
+        if (keys.up && time_diff(cd.r1, cd.r2) > 0.2)
         {
-            r_cooldown1 = get_time_in_seconds();
+            cd.r1 = get_time_in_seconds();
             rotate_tetromino(&tetrominoes[current_tetromino], &landed);
         }
 
