@@ -93,7 +93,7 @@ int main()
 
     for (;;)
     {
-        struct Keys keys;
+        struct Keys keys = {0};
 
         // input
         get_key(&keys);

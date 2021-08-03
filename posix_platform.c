@@ -77,12 +77,12 @@ void get_key(struct Keys *keys)
 {
     memset(keys, 0, sizeof(struct Keys));
 
-    char c;
+    char c = 0;
     read(STDIN_FILENO, &c, 1);
 
     if (c == '\033')
     {
-        char seq[2];
+        char seq[2] = {0};
 
         read(STDIN_FILENO, &seq[0], 1);
         read(STDIN_FILENO, &seq[1], 1);
