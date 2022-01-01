@@ -164,6 +164,12 @@ int main()
         };
         draw_next_tetromino_preview(&console, &tetrominoes[next_tetromino], tetromino_preview_coord);
         
+        const vec2i score_pos = {
+            .x = start_preview_frame_coord.x,
+            .y = start_preview_frame_coord.y+6,
+        };
+        draw_score(&console, score_pos, score);
+        
         const vec2i field_coord = { .x = 1, .y = 1 };
         draw_field(&console, &field, field_coord);
         
@@ -172,6 +178,12 @@ int main()
     }
     // Copy last frame to console buffer
     write_to_console(&console);
+    
+    const vec2i final_score_pos = {.x = 0, .y = 0};
+    clear_screen_with(&console, ' ');
+    draw_score(&console, final_score_pos, score);
+    platform_sleep(1000);
+    
     close_console(&console);
     
     printf("Score: %d\n", score);

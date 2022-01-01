@@ -3,6 +3,26 @@
 
 #include "draw.h"
 
+void clear_screen_with(struct Buffer *console, char ch)
+{
+    memset(console->buffer, ch, console->size_in_bytes);
+}
+
+void draw_text(struct Buffer *console, vec2i pos, const char *text, size_t length)
+{
+    char *where = console->buffer+(console->width*pos.y+pos.x);
+    snprintf(where, length, text);
+}
+
+void draw_score(struct Buffer *console, vec2i pos, int score)
+{
+    char buf[255];
+    size_t length = sprintf(buf, "Score: %d", score);
+    length += 1;
+    draw_text(console, pos, buf, length);
+    write_to_console(console);
+}
+
 void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)
 {
     // drawing angles
