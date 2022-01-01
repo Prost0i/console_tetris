@@ -21,5 +21,6 @@ void init_time();
 double get_time_in_seconds();
 double time_diff(double start, double end);
 void get_key(struct Keys *keys);
+void platform_sleep(unsigned int millis);
 
 #endif // PLATFORM_H_

@@ -8,6 +8,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -113,4 +114,11 @@ void get_key(struct Keys *keys)
             keys->escape = true;
         }
     }
+}
+
+void platform_sleep(unsigned int millis)
+{
+    close_console();
+    fprintf(stderr, "%s function in file %s is not implemented!\n", __func__, __FILE__);
+    exit(1);
 }
