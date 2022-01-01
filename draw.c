@@ -10,7 +10,7 @@ void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)
     buffer_set_value(console, '+', end_coord.x, start_coord.y);
     buffer_set_value(console, '+', start_coord.x, end_coord.y);
     buffer_set_value(console, '+', end_coord.x, end_coord.y);
-
+    
     // drawing left and right boundary
     for (int i = start_coord.y+1; i < end_coord.y; ++i)
     {
@@ -40,7 +40,7 @@ void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetro
             buffer_set_value(console, ' ', x, y);
         }
     }
-
+    
     // placing tetromino in preview window
     for (int32_t y = 0; y < tetromino->shapes[0].height; ++y)
     {

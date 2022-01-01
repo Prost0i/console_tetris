@@ -18,8 +18,8 @@ int32_t check_boundary(struct Tetromino *tetromino, struct Buffer *landed, int32
     }
     // check left and right landed blocks
     if (landed_get_value(landed,
-                x + tetromino->potentialTopLeft.x,
-                y + tetromino->topLeft.y) != 0)
+                         x + tetromino->potentialTopLeft.x,
+                         y + tetromino->topLeft.y) != 0)
     {
         return 1;
     }
@@ -37,8 +37,8 @@ int32_t check_landing(struct Tetromino *tetromino, struct Buffer *landed, int32_
     }
     // landing on landed blocks
     if (landed_get_value(landed,
-                x + tetromino->potentialTopLeft.x,
-                y + tetromino->potentialTopLeft.y) != 0)
+                         x + tetromino->potentialTopLeft.x,
+                         y + tetromino->potentialTopLeft.y) != 0)
     {
         return 1;
     }
@@ -93,7 +93,7 @@ void check_filled_row(struct Buffer *landed, int32_t *score, double *falling_coo
             {
                 landed_set_value(landed, 0, x, y);
             }
-
+            
             for (int32_t yy = y-1; yy > 0; --yy)
             {
                 for (int32_t x = 0; x < landed->width; ++x)
@@ -118,8 +118,8 @@ int32_t game_over_check(struct Tetromino *tetromino, struct Buffer *landed)
         for (int32_t x = 0; x < tetromino->shapes[tetromino->currentShape].width; ++x)
         {
             if (landed_get_value(landed,
-                        x + tetromino->topLeft.x,
-                        y + tetromino->topLeft.y) != 0)
+                                 x + tetromino->topLeft.x,
+                                 y + tetromino->topLeft.y) != 0)
             {
                 return 1;
             }

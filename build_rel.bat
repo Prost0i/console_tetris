@@ -1,12 +1,11 @@
 @echo off
 
 set code=%cd%
-set build_dir=build_rel
 
-set link_opts=-luser32 -Xlinker /subsystem:console -Xlinker /implib:tetris.lib -Xlinker /pdb:tetris.pdb
-set opts=-Wall -Wextra -Werror -pedantic -O3 -MD -MT -D_CRT_SECURE_NO_WARNINGS -D_DLL -D_MT -DNDEBUG  -nostdlib -Xclang --dependent-lib=msvcrt 
+set link_opts=-opt:ref user32.lib -subsystem:console
+set opts=-MT -FC -GR- -EHsc- -nologo -O2 -W4 -WX -D_CRT_SECURE_NO_WARNINGS
 
-if not exist %build_dir% mkdir %build_dir%
-pushd %build_dir%
-clang %opts% %code%\main.c -o tetris.exe %link_opts%
+if not exist build_rel mkdir build_rel
+pushd build_rel
+cl %opts% %code%\main.c -Fetetris -link %link_opts%
 popd

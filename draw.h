@@ -4,7 +4,9 @@
 #include "buffer.h"
 #include "tetromino.h"
 
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord);
 void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetromino, vec2i coord);

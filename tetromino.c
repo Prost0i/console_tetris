@@ -30,14 +30,14 @@ void rotate_tetromino(struct Tetromino *tetromino, struct Buffer *landed)
     {
         return;
     }
-
+    
     int32_t next_shape_index = 
-        ((tetromino->currentShape+1) >= tetromino->countOfShapes)
+    ((tetromino->currentShape+1) >= tetromino->countOfShapes)
         ? 0
         : tetromino->currentShape+1;
-
+    
     struct Shape *shape = &tetromino->shapes[next_shape_index];
-
+    
     // check collision for next shape
     for (int32_t y = 0; y < shape->height; ++y)
     {
@@ -49,7 +49,7 @@ void rotate_tetromino(struct Tetromino *tetromino, struct Buffer *landed)
                 {
                     return;
                 }
-
+                
                 if (check_landing(tetromino, landed, x, y))
                 {
                     return;
@@ -57,7 +57,7 @@ void rotate_tetromino(struct Tetromino *tetromino, struct Buffer *landed)
             }
         }
     }
-
+    
     tetromino->currentShape = next_shape_index;
 }
 
@@ -84,7 +84,7 @@ void create_tetromino(struct Tetromino *tetromino, const char **values, const ve
                 }
             }
         }
-
+        
         tetromino->shapes[i] = shape;
     }
 }
@@ -94,11 +94,11 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
     // I
     const char *IVal[2] = {
         "XXXX",
-
+        
         "X"
-        "X"
-        "X"
-        "X"
+            "X"
+            "X"
+            "X"
     };
     const vec2i Isizes[2] =
     {
@@ -106,33 +106,33 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
         { .x = 1, .y = 4},
     };
     create_tetromino(&tetrominoes[0], IVal, Isizes, 2);
-
+    
     // O
     const char *OVal[1] = {
         "XX"
-        "XX",
+            "XX",
     };
     const vec2i Osizes[1] =
     {
         { .x = 2, .y = 2 }
     };
     create_tetromino(&tetrominoes[1], OVal, Osizes, 1);
-
+    
     // T
     const char *TVal[4] = {
         "XXX"
-        "0X0",
-
+            "0X0",
+        
         "0X"
-        "XX"
-        "0X",
-
+            "XX"
+            "0X",
+        
         "0X0"
-        "XXX",
-
+            "XXX",
+        
         "X0"
-        "XX"
-        "X0",
+            "XX"
+            "X0",
     };
     const vec2i Tsizes[4] =
     {
@@ -142,22 +142,22 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
         { .x = 2, .y = 3}
     };
     create_tetromino(&tetrominoes[2], TVal, Tsizes, 4);
-
+    
     // J
     const char *JVal[4] = {
         "0X"
-        "0X"
-        "XX",
-
+            "0X"
+            "XX",
+        
         "X00"
-        "XXX",
-
+            "XXX",
+        
         "XX"
-        "X0"
-        "X0",
-
+            "X0"
+            "X0",
+        
         "XXX"
-        "00X"
+            "00X"
     };
     const vec2i Jsizes[4] =
     {
@@ -167,22 +167,22 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
         { .x = 3, .y = 2}
     };
     create_tetromino(&tetrominoes[3], JVal, Jsizes, 4);
-
+    
     // L
     const char *LVal[4] = {
         "XX"
-        "0X"
-        "0X",
-
+            "0X"
+            "0X",
+        
         "00X"
-        "XXX",
-
+            "XXX",
+        
         "X0"
-        "X0"
-        "XX",
-
+            "X0"
+            "XX",
+        
         "XXX"
-        "X00"
+            "X00"
     };
     const vec2i Lsizes[4] =
     {
@@ -192,15 +192,15 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
         { .x = 3, .y = 2}
     };
     create_tetromino(&tetrominoes[4], LVal, Lsizes, 4);
-
+    
     // S
     const char *SVal[2] = {
         "0XX"
-        "XX0",
-
+            "XX0",
+        
         "X0"
-        "XX"
-        "0X"
+            "XX"
+            "0X"
     };
     const vec2i Ssizes[2] =
     {
@@ -208,15 +208,15 @@ void init_tetrominoes(struct Tetromino *tetrominoes)
         { .x = 2, .y = 3},
     };
     create_tetromino(&tetrominoes[5], SVal, Ssizes, 2);
-
+    
     // Z
     const char *ZVal[2] = {
         "XX0"
-        "0XX",
-
+            "0XX",
+        
         "0X"
-        "XX"
-        "X0"
+            "XX"
+            "X0"
     };
     const vec2i Zsizes[2] =
     {
