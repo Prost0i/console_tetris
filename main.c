@@ -90,6 +90,8 @@ int main()
     
     int32_t score = 0;
     double falling_cooldown = 0.5;
+    const double movement_cooldown = 0.17;
+    const double rotate_cooldown = 0.3;
     
     for (;;)
     {
@@ -118,19 +120,19 @@ int main()
         }
         
         cd.x2 = get_time_in_seconds();
-        if (keys.left && time_diff(cd.x1, cd.x2) > 0.1)
+        if (keys.left && time_diff(cd.x1, cd.x2) > movement_cooldown)
         {
             cd.x1 = get_time_in_seconds();
             --tetrominoes[current_tetromino].potentialTopLeft.x;
         }
-        else if (keys.right && time_diff(cd.x1, cd.x2) > 0.1)
+        else if (keys.right && time_diff(cd.x1, cd.x2) > movement_cooldown)
         {
             cd.x1 = get_time_in_seconds();
             ++tetrominoes[current_tetromino].potentialTopLeft.x;
         }
         
         cd.r2 = get_time_in_seconds();
-        if (keys.up && time_diff(cd.r1, cd.r2) > 0.2)
+        if (keys.up && time_diff(cd.r1, cd.r2) > rotate_cooldown)
         {
             cd.r1 = get_time_in_seconds();
             rotate_tetromino(&tetrominoes[current_tetromino], &landed);
