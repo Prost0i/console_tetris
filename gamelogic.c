@@ -6,6 +6,12 @@ struct CooldownTimers {
     r1, r2;
 };
 
+struct FrametimeLimitTimers {
+    double t1, t2;
+    double work_time;
+    double sleep_time;
+};
+
 int32_t mainloop(struct Buffer *console)
 {
     // Clear screen with space characters
@@ -55,13 +61,35 @@ int32_t mainloop(struct Buffer *console)
     // cooldowns
     double falling_cooldown = 0.5;
     const double movement_cooldown = 0.17;
-    const double rotate_cooldown = 0.3;
+    const double rotate_cooldown = 0.2;
     
     int32_t score = 0;
+    
+    // setting up fps limit timers
+    struct FrametimeLimitTimers fl = {
+        .t1 = get_time_in_seconds(),
+        .t2 = get_time_in_seconds(),
+        .work_time = 0,
+        .sleep_time = 0
+    };
     
     // main game loop
     for (;;)
     {
+        
+        // FPS limit
+        fl.t1 = get_time_in_seconds();
+        
+        fl.work_time = time_diff(fl.t2, fl.t1);
+        if (fl.work_time < 16.6/1000.0)
+        {
+            unsigned int sleep_time = (unsigned int)(16-fl.work_time);
+            platform_sleep(sleep_time);
+        }
+        
+        fl.t2 = get_time_in_seconds();
+        fl.sleep_time = time_diff(fl.t1, fl.t2);
+        
         struct Keys keys = {0};
         
         // input
