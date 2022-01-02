@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <errno.h>
 
 struct termios orig_termios;
 
@@ -118,7 +119,13 @@ void get_key(struct Keys *keys)
 
 void platform_sleep(unsigned int millis)
 {
-    close_console();
-    fprintf(stderr, "%s function in file %s is not implemented!\n", __func__, __FILE__);
-    exit(1);
+	struct timespec ts;
+	int res;
+
+	ts.tv_sec = millis / 1000;
+	ts.tv_nsec = (millis % 1000) * 1000000;
+
+	do {
+		res = nanosleep(&ts, &ts);
+	} while (res && errno == EINTR);
 }

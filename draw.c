@@ -11,7 +11,10 @@ void clear_screen_with(struct Buffer *console, char ch)
 void draw_text(struct Buffer *console, vec2i pos, const char *text, size_t length)
 {
     char *where = console->buffer+(console->width*pos.y+pos.x);
-    snprintf(where, length, text);
+    for (size_t i = 0; i < length-1; ++i)
+    {
+	    where[i] = text[i];
+    }
 }
 
 void draw_score(struct Buffer *console, vec2i pos, int score)
