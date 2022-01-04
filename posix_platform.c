@@ -82,6 +82,16 @@ void get_key(struct Keys *keys)
     char c = 0;
     read(STDIN_FILENO, &c, 1);
     
+    switch (c)
+    {
+        case 'y': {
+            keys->y = true;
+        }break;
+        case 'n': {
+            keys->n = true;
+        }break;
+    }
+    
     if (c == '\033')
     {
         char seq[2] = {0};

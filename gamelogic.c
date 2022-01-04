@@ -12,8 +12,32 @@ struct FrametimeLimitTimers {
     double sleep_time;
 };
 
+void setup_frametime_limit_timers(struct FrametimeLimitTimers *fl)
+{
+    fl->t1 = get_time_in_seconds();
+    fl->t2 = get_time_in_seconds();
+    fl->work_time = 0;
+    fl->sleep_time = 0;
+}
+
+void fps_limit(struct FrametimeLimitTimers *fl)
+{
+    fl->t1 = get_time_in_seconds();
+    
+    fl->work_time = time_diff(fl->t2, fl->t1);
+    if (fl->work_time < 16.6/1000.0)
+    {
+        uint32_t sleep_time = (uint32_t)(16-fl->work_time);
+        platform_sleep(sleep_time);
+    }
+    
+    fl->t2 = get_time_in_seconds();
+    fl->sleep_time = time_diff(fl->t1, fl->t2);
+}
+
 int32_t mainloop(struct Buffer *console)
 {
+    restart_game:
     // Clear screen with space characters
     memset(console->buffer, ' ', console->size_in_bytes);
     
@@ -64,31 +88,12 @@ int32_t mainloop(struct Buffer *console)
     const double rotate_cooldown = 0.2;
     
     int32_t score = 0;
-    
-    // setting up fps limit timers
-    struct FrametimeLimitTimers fl = {
-        .t1 = get_time_in_seconds(),
-        .t2 = get_time_in_seconds(),
-        .work_time = 0,
-        .sleep_time = 0
-    };
-    
+    struct FrametimeLimitTimers fl = {0};
+    setup_frametime_limit_timers(&fl);
     // main game loop
     for (;;)
     {
-        
-        // FPS limit
-        fl.t1 = get_time_in_seconds();
-        
-        fl.work_time = time_diff(fl.t2, fl.t1);
-        if (fl.work_time < 16.6/1000.0)
-        {
-            uint32_t sleep_time = (uint32_t)(16-fl.work_time);
-            platform_sleep(sleep_time);
-        }
-        
-        fl.t2 = get_time_in_seconds();
-        fl.sleep_time = time_diff(fl.t1, fl.t2);
+        fps_limit(&fl);
         
         struct Keys keys = {0};
         
@@ -176,10 +181,60 @@ int32_t mainloop(struct Buffer *console)
     write_to_console(console);
     
     // Final score print
-    const vec2i final_score_pos = {.x = 0, .y = 0};
     clear_screen_with(console, ' ');
+    
+    const vec2i final_score_pos = {.x = 0, .y = 0};
+    const vec2i continue_pos = {.x = 0, .y = 1};
     draw_score(console, final_score_pos, score);
-    platform_sleep(1000);
+    
+    const char *continue_text = "Do you want continue?(Press Y/N)";
+    const size_t continue_text_length = strlen(continue_text)+1;
+    draw_text(console, continue_pos, continue_text, continue_text_length);
+    
+    write_to_console(console);
+    
+    double continue_timer1 = get_time_in_seconds();
+    double continue_timer2 = get_time_in_seconds();
+    int32_t continue_counter = 5;
+    
+    // score and continue screen loop
+    setup_frametime_limit_timers(&fl);
+    for (;;)
+    {
+        fps_limit(&fl);
+        struct Keys keys = {0};
+        get_key(&keys);
+        
+        if (keys.y)
+        {
+            goto restart_game;
+        }
+        else if (keys.n)
+        {
+            break;
+        }
+        
+        // Print counter after text
+        const vec2i continue_counter_pos = { .x = (int32_t)continue_text_length, .y = 1 };
+        buffer_set_value(console, (char)(continue_counter+48), continue_counter_pos.x, continue_counter_pos.y);
+        write_to_console(console);
+        
+        continue_timer2 = get_time_in_seconds();
+        // decrease counter every second
+        if (time_diff(continue_timer1, continue_timer2) > 1.0)
+        {
+            continue_timer1 = get_time_in_seconds();
+            continue_timer2 = get_time_in_seconds();
+            
+            --continue_counter;
+        }
+        
+        // exiting game
+        if (continue_counter <= 0)
+        {
+            break;
+        }
+    }
     
     // return score for console printing
     return score;

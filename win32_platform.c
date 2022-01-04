@@ -64,6 +64,8 @@ void get_key(struct Keys *keys)
     keys->up = GetAsyncKeyState(VK_UP);
     keys->down = GetAsyncKeyState(VK_DOWN);
     keys->escape = GetAsyncKeyState(VK_ESCAPE);
+    keys->y = GetAsyncKeyState(0x59);
+    keys->n = GetAsyncKeyState(0x4E);
 }
 
 void platform_sleep(uint32_t millis)

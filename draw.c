@@ -23,7 +23,6 @@ void draw_score(struct Buffer *console, vec2i pos, int32_t score)
     size_t length = sprintf(buf, "Score: %d", score);
     length += 1;
     draw_text(console, pos, buf, length);
-    write_to_console(console);
 }
 
 void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)

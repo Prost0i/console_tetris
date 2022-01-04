@@ -12,6 +12,8 @@ struct Keys
     bool up;
     bool down;
     bool escape;
+    bool y;
+    bool n;
 };
 
 void init_console(struct Buffer *console);
