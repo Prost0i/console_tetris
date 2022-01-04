@@ -117,14 +117,14 @@ void get_key(struct Keys *keys)
     }
 }
 
-void platform_sleep(unsigned int millis)
+void platform_sleep(uint32_t millis)
 {
 	struct timespec ts;
-	int res;
-
+    int32_t res;
+    
 	ts.tv_sec = millis / 1000;
 	ts.tv_nsec = (millis % 1000) * 1000000;
-
+    
 	do {
 		res = nanosleep(&ts, &ts);
 	} while (res && errno == EINTR);

@@ -102,7 +102,7 @@ void check_filled_row(struct Buffer *landed, int32_t *score, double *falling_coo
                     landed_set_value(landed, value, x, yy+1);
                 }
             }
-            for (int x = 0; x < landed->width; ++x)
+            for (int32_t x = 0; x < landed->width; ++x)
             {
                 landed_set_value(landed, 0, x, 0);
             }

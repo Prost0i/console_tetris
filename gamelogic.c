@@ -83,7 +83,7 @@ int32_t mainloop(struct Buffer *console)
         fl.work_time = time_diff(fl.t2, fl.t1);
         if (fl.work_time < 16.6/1000.0)
         {
-            unsigned int sleep_time = (unsigned int)(16-fl.work_time);
+            uint32_t sleep_time = (uint32_t)(16-fl.work_time);
             platform_sleep(sleep_time);
         }
         

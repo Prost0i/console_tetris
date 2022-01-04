@@ -66,7 +66,7 @@ void get_key(struct Keys *keys)
     keys->escape = GetAsyncKeyState(VK_ESCAPE);
 }
 
-void platform_sleep(unsigned int millis)
+void platform_sleep(uint32_t millis)
 {
     Sleep(millis);
 }

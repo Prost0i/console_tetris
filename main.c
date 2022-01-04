@@ -31,7 +31,7 @@ int main()
     char *screen = malloc(sizeof(char)*1000*1000);
     
     // Seed random
-    srand((unsigned int)time(NULL));
+    srand((uint32_t)time(NULL));
     
     struct Buffer console = {
         .buffer = screen,
@@ -42,7 +42,7 @@ int main()
     init_console(&console);
     init_time();
     
-    int score = mainloop(&console);
+    int32_t score = mainloop(&console);
     
     close_console(&console);
     

@@ -17,7 +17,7 @@ void draw_text(struct Buffer *console, vec2i pos, const char *text, size_t lengt
     }
 }
 
-void draw_score(struct Buffer *console, vec2i pos, int score)
+void draw_score(struct Buffer *console, vec2i pos, int32_t score)
 {
     char buf[255];
     size_t length = sprintf(buf, "Score: %d", score);
@@ -35,13 +35,13 @@ void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)
     buffer_set_value(console, '+', end_coord.x, end_coord.y);
     
     // drawing left and right boundary
-    for (int i = start_coord.y+1; i < end_coord.y; ++i)
+    for (int32_t i = start_coord.y+1; i < end_coord.y; ++i)
     {
         buffer_set_value(console, '|', start_coord.x, i);
         buffer_set_value(console, '|', end_coord.x, i);
     }
     // drawing ceiling and floor
-    for (int i = start_coord.x+1; i < end_coord.x; ++i)
+    for (int32_t i = start_coord.x+1; i < end_coord.x; ++i)
     {
         buffer_set_value(console, '-', i, start_coord.y);
         buffer_set_value(console, '-', i, end_coord.y);
@@ -53,12 +53,12 @@ void draw_frame(struct Buffer *console, vec2i start_coord, vec2i end_coord)
 
 void draw_next_tetromino_preview(struct Buffer *console, struct Tetromino *tetromino, vec2i coord)
 {
-    const int max_y = coord.y+PREVIEW_HEIGHT;
-    const int max_x = coord.x+PREVIEW_WIDTH;
+    const int32_t max_y = coord.y+PREVIEW_HEIGHT;
+    const int32_t max_x = coord.x+PREVIEW_WIDTH;
     // clearing preview window from previous tetromino
-    for (int y = coord.y; y < max_y; ++y)
+    for (int32_t y = coord.y; y < max_y; ++y)
     {
-        for (int x = coord.x; x < max_x; ++x)
+        for (int32_t x = coord.x; x < max_x; ++x)
         {
             buffer_set_value(console, ' ', x, y);
         }
