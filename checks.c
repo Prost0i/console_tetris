@@ -4,50 +4,50 @@
 
 #include "checks.h"
 
-int32_t check_boundary(struct Tetromino *tetromino, struct Buffer *landed, int32_t x, int32_t y)
+bool check_boundary(struct Tetromino *tetromino, struct Buffer *landed, int32_t x, int32_t y)
 {
     // check for left boundary
     if (x + tetromino->potentialTopLeft.x < 0)
     {
-        return 1;
+        return true;
     }
     // check for right boundary
     if (x + tetromino->potentialTopLeft.x >= landed->width)
     {
-        return 1;
+        return true;
     }
     // check left and right landed blocks
     if (landed_get_value(landed,
                          x + tetromino->potentialTopLeft.x,
                          y + tetromino->topLeft.y) != 0)
     {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // returning 0 if tetromino is not landed
 // returning 1 if tetromino is landed
-int32_t check_landing(struct Tetromino *tetromino, struct Buffer *landed, int32_t x, int32_t y)
+bool check_landing(struct Tetromino *tetromino, struct Buffer *landed, int32_t x, int32_t y)
 {
     // landing on floor
     if (y + tetromino->potentialTopLeft.y >= landed->height)
     {
-        return 1;
+        return true;
     }
     // landing on landed blocks
     if (landed_get_value(landed,
                          x + tetromino->potentialTopLeft.x,
                          y + tetromino->potentialTopLeft.y) != 0)
     {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // returning 0 if tetromino is not landed
 // returning 1 if tetromino is landed
-int32_t check_colision(struct Tetromino *tetromino, struct Buffer *landed)
+bool check_colision(struct Tetromino *tetromino, struct Buffer *landed)
 {
     for (int32_t y = 0; y < tetromino->shapes[tetromino->currentShape].height; ++y)
     {
@@ -63,12 +63,12 @@ int32_t check_colision(struct Tetromino *tetromino, struct Buffer *landed)
                 {
                     land_tetromino(tetromino, landed);
                     reset_tetromino_state(tetromino);
-                    return 1;
+                    return true;
                 }
             }
         }
     }
-    return 0;
+    return false;
 }
 
 void check_filled_row(struct Buffer *landed, int32_t *score, double *falling_cooldown)
@@ -110,7 +110,7 @@ void check_filled_row(struct Buffer *landed, int32_t *score, double *falling_coo
     }
 }
 
-int32_t game_over_check(struct Tetromino *tetromino, struct Buffer *landed)
+bool game_over_check(struct Tetromino *tetromino, struct Buffer *landed)
 {
     // if tetromino spawned in landed blocks game is over
     for (int32_t y = 0; y < tetromino->shapes[tetromino->currentShape].height; ++y)
@@ -121,9 +121,9 @@ int32_t game_over_check(struct Tetromino *tetromino, struct Buffer *landed)
                                  x + tetromino->topLeft.x,
                                  y + tetromino->topLeft.y) != 0)
             {
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
